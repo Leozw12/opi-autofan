@@ -1,3 +1,4 @@
+import os
 import time
 from datetime import datetime
 
@@ -6,15 +7,21 @@ from wiringpi import GPIO
 
 
 GPIO_OUT = 17
-START_TEMP = 55
+START_TEMP = 50
 STOP_TEMP = 40
-DELAY_TIME = 15
+DELAY_TIME = 10
 
 
 def get_cpu_temperature():
-    with open("/sys/class/thermal/thermal_zone0/temp", 'r') as f:
-        temperature = float(f.read()) / 1000
-    return temperature
+    base_dir = '/sys/class/thermal/'
+    for thermal_zone in os.listdir(base_dir):
+        if thermal_zone.startswith('thermal_zone'):
+            with open(os.path.join(base_dir, thermal_zone, 'type'), 'r') as f:
+                if 'cpu' in f.read().lower():
+                    with open(os.path.join(base_dir, thermal_zone, 'temp'), 'r') as f_temp:
+                        temperature = float(f_temp.read()) / 1000
+                        return temperature
+    return None
 
 
 def open_fan():
@@ -39,7 +46,6 @@ def main():
     try:
         while True:
             temp = get_cpu_temperature()
-            print(f'{datetime.now().strftime("%Y-%m-%d %H:%M:%S")} - Current temperature is {temp}℃')
 
             if temp >= START_TEMP and not status:
                 open_fan()
