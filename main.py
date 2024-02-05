@@ -28,6 +28,7 @@ def close_fan():
 def init_gpio():
     wiringpi.wiringPiSetup()
     wiringpi.pinMode(GPIO_OUT, wiringpi.OUTPUT)
+    wiringpi.digitalWrite(GPIO_OUT, GPIO.HIGH)
 
 
 def main():
@@ -37,7 +38,6 @@ def main():
     try:
         while True:
             temp = get_cpu_temperature()
-            print(f'')
 
             if temp >= START_TEMP and not status:
                 open_fan()
